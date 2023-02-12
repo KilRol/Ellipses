@@ -1,11 +1,3 @@
-using static System.Windows.Forms.AxHost;
-using System.Drawing;
-using System.CodeDom.Compiler;
-using System.Windows.Forms;
-using System.Resources;
-using System;
-using System.Reflection;
-
 namespace Ellipses
 {
     public partial class Form1 : Form
@@ -20,13 +12,17 @@ namespace Ellipses
         private readonly EllipseReporter mediumEllipseReporter;
         private readonly EllipseReporter smallEllipseReporter;
 
+        private readonly System.Windows.Forms.Timer timer;
         private readonly BufferedGraphics grafx;
-        private bool runAnimation;
 
         public Form1()
         {
             InitializeComponent();
             grafx = BufferedGraphicsManager.Current.Allocate(CreateGraphics(), this.DisplayRectangle);
+
+            timer = new System.Windows.Forms.Timer();
+            timer.Interval = 10;
+            timer.Tick += new EventHandler(this.OnTimer);
 
             bigEllipse = new MyEllipse(ref grafx, 400, 200, new Point(ClientSize.Width / 2, ClientSize.Height / 2));
             mediumEllipse = new MyEllipse(ref grafx, 200, 100, new Point(ClientSize.Width / 2, ClientSize.Height / 2));
@@ -57,25 +53,31 @@ namespace Ellipses
             mediumEllipseBinder.Notify(mediumEllipse);
         }
 
-        private async void button1_Click(object sender, EventArgs e)
+        private async void OnTimer(object sender, EventArgs e)
         {
-            runAnimation = !runAnimation;
-            while (true)
+            bigEllipse.Rotate((int)bigEllipseRotateSpeed.Value * Math.PI / 180);
+            mediumEllipse.Rotate((int)mediumEllipseRotateSpeed.Value * Math.PI / 180);
+            smallEllipse.Rotate((int)smallEllipseRotateSpeed.Value * Math.PI / 180);
+
+            mediumEllipse.Move((int)mediumEllipseMoveSpeed.Value);
+            smallEllipse.Move((int)smallEllipseMoveSpeed.Value);
+
+            bigEllipseBinder.Notify(bigEllipse);
+            mediumEllipseBinder.Notify(mediumEllipse);
+            await Task.Delay(1);
+
+            grafx.Render(Graphics.FromHwnd(this.Handle));
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (timer.Enabled)
             {
-                if (!runAnimation) { break; }
-
-                bigEllipse.Rotate((int)bigEllipseRotateSpeed.Value * Math.PI / 180);
-                mediumEllipse.Rotate((int)mediumEllipseRotateSpeed.Value * Math.PI / 180);
-                smallEllipse.Rotate((int)smallEllipseRotateSpeed.Value * Math.PI / 180);
-
-                mediumEllipse.Move((int)mediumEllipseMoveSpeed.Value);
-                smallEllipse.Move((int)smallEllipseMoveSpeed.Value);
-
-                bigEllipseBinder.Notify(bigEllipse);
-                mediumEllipseBinder.Notify(mediumEllipse);
-
-                await Task.Delay(1);
-                grafx.Render(Graphics.FromHwnd(this.Handle));
+                timer.Stop();
+            }
+            else
+            {
+                timer.Start();
             }
         }
 
