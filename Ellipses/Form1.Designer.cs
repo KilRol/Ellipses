@@ -144,7 +144,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.mediumEllipseMoveSpeed)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.smallEllipseMoveSpeed)).EndInit();
             this.ResumeLayout(false);
-
         }
 
         #endregion
